@@ -315,31 +315,160 @@ services:
 
 ## Environment Variables
 
-### Required `.env` file
+### Complete `.env.example` File
+
+Create this file as `.env` in your project root:
 
 ```bash
-# Database
+# =============================================================================
+# AWGP ENVIRONMENT CONFIGURATION
+# =============================================================================
+# Copy this file to .env and fill in your actual values
+# DO NOT commit .env to git (it's in .gitignore)
+
+# =============================================================================
+# INFRASTRUCTURE (Existing Services)
+# =============================================================================
+
+# PostgreSQL Database (Required)
+# Your existing PostgreSQL server
+DB_HOST=postgres
+DB_PORT=5432
 DB_USER=awgp
-DB_PASSWORD=your_secure_password_here
+DB_PASSWORD=changeme_secure_password_here
 DB_NAME=awgp
+DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}
 
-# Redis
-REDIS_PASSWORD=your_redis_password_here
+# Redis Cache (Required)
+# Your existing Redis server
+REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_PASSWORD=changeme_secure_redis_password
+REDIS_URL=redis://${REDIS_HOST}:${REDIS_PORT}
 
-# Keycloak
-KEYCLOAK_CLIENT_SECRET=your_keycloak_secret_here
+# Keycloak Identity (Required)
+# Your existing Keycloak server
+KEYCLOAK_HOST=keycloak
+KEYCLOAK_PORT=8080
+KEYCLOAK_URL=http://${KEYCLOAK_HOST}:${KEYCLOAK_PORT}
+KEYCLOAK_REALM=awgp
+KEYCLOAK_CLIENT_ID=awgp-api
+KEYCLOAK_CLIENT_SECRET=your_keycloak_client_secret_here
 
-# JWT
-JWT_SECRET=your_jwt_signing_key_here_min_32_chars
-
-# API Keys (Provider costs)
-OPENROUTER_API_KEY=sk-or-v1-your-key-here
-OPENAI_API_KEY=sk-your-key-here
-ANTHROPIC_API_KEY=sk-ant-your-key-here
-
-# Optional
+# Teleport (Optional - for infrastructure access)
 TELEPORT_PROXY_URL=https://teleport.yourdomain.com:3080
-```
+TELEPORT_APP_TOKEN=your_teleport_app_token_here
+
+# Qdrant Vector DB (Optional - for assistant memory)
+QDRANT_HOST=qdrant
+QDRANT_PORT=6333
+QDRANT_URL=http://${QDRANT_HOST}:${QDRANT_PORT}
+
+# =============================================================================
+# AWGP APPLICATION
+# =============================================================================
+
+# Node Environment (Required)
+NODE_ENV=production
+
+# API Server (Required)
+API_PORT=4000
+API_HOST=0.0.0.0
+API_URL=http://localhost:${API_PORT}
+
+# Web Frontend (Required)
+WEB_PORT=3000
+VITE_API_URL=https://api.awgp.local
+VITE_KEYCLOAK_URL=https://auth.awgp.local
+
+# JWT Configuration (Required)
+JWT_SECRET=your_jwt_secret_key_here_minimum_32_characters
+JWT_EXPIRES_IN=24h
+JWT_REFRESH_EXPIRES_IN=7d
+
+# =============================================================================
+# API PROVIDERS (At least one required)
+# =============================================================================
+
+# OpenRouter (Recommended - multi-provider)
+OPENROUTER_API_KEY=sk-or-v1-your-openrouter-key-here
+
+# OpenAI Direct (Optional)
+OPENAI_API_KEY=sk-your-openai-key-here
+OPENAI_ORG_ID=org-your-org-id
+
+# Anthropic (Optional)
+ANTHROPIC_API_KEY=sk-ant-your-anthropic-key-here
+
+# Local Model (Optional)
+LOCAL_MODEL_URL=http://localhost:1234/v1
+LOCAL_MODEL_KEY=your-local-model-key
+
+# =============================================================================
+# COST MANAGEMENT
+# =============================================================================
+
+# Monthly budgets per provider (default in USD)
+OPENROUTER_MONTHLY_BUDGET=5000
+OPENAI_MONTHLY_BUDGET=3000
+ANTHROPIC_MONTHLY_BUDGET=2000
+LOCAL_MONTHLY_BUDGET=500
+
+# Alert thresholds
+COST_ALERT_THRESHOLD_50=true
+COST_ALERT_THRESHOLD_75=true
+COST_ALERT_THRESHOLD_90=true
+COST_ALERT_THRESHOLD_95=true
+
+# =============================================================================
+# SECURITY
+# =============================================================================
+
+# Rate limiting (requests per minute)
+RATE_LIMIT_GENERAL=100
+RATE_LIMIT_COSTLY=20
+RATE_LIMIT_AUTH=5
+
+# CORS (comma-separated origins)
+CORS_ORIGINS=https://awgp.local,https://api.awgp.local
+
+# Encryption
+ENCRYPTION_KEY=your_32_byte_encryption_key_here
+
+# =============================================================================
+# HOST RUNTIME (Sandbox)
+# =============================================================================
+
+# Sandbox configuration
+SANDBOX_TYPE=gvisor
+SANDBOX_TIMEOUT=300
+MAX_MEMORY_MB=512
+MAX_CPU_PERCENT=50
+
+# =============================================================================
+# LOGGING
+# =============================================================================
+
+LOG_LEVEL=info
+LOG_FORMAT=json
+LOG_RETENTION_DAYS=30
+
+# =============================================================================
+# FEATURE FLAGS (Optional)
+# =============================================================================
+
+ENABLE_TELEPORT_INTEGRATION=false
+ENABLE_N8N_INTEGRATION=true
+ENABLE_SLACK_NOTIFICATIONS=false
+ENABLE_EMAIL_NOTIFICATIONS=true
+
+# =============================================================================
+# DEVELOPMENT (Override in .env.local for dev)
+# =============================================================================
+
+# DEBUG=true
+# LOG_LEVEL=debug
+# NODE_ENV=development
 
 ---
 
