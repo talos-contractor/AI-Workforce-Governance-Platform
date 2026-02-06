@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Card, StatusBadge, ProgressBar } from '../components/ui';
-import { mockCostByTenant } from '../../data';
+import { mockCostByTenant } from '@/data';
 
 export default function Costs() {
   const [period, setPeriod] = useState('month');

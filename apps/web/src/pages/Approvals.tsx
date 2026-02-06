@@ -1,5 +1,5 @@
 import { Card, StatusBadge } from '../components/ui';
-import { mockApprovals } from '../../data';
+import { mockApprovals } from '@/data';
 
 export default function Approvals() {
   const urgentApprovals = mockApprovals.filter(a => a.riskLevel >= 4);

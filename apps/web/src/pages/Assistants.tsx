@@ -1,5 +1,5 @@
 import { Card, StatusBadge, StatsCard, ActivityIcon } from '../components/ui';
-import { mockAssistants, mockWorkItems } from '../../data';
+import { mockAssistants, mockWorkItems } from '@/data';
 
 export default function Assistants() {
   const activeCount = mockAssistants.filter(a => a.status === 'active').length;

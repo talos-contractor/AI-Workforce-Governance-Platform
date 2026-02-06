@@ -1,5 +1,5 @@
 import { Card, StatusBadge } from '../components/ui';
-import { mockAuditLog } from '../../data';
+import { mockAuditLog } from '@/data';
 
 export default function Audit() {
   return (

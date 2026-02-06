@@ -1,5 +1,5 @@
 import { Card, StatusBadge, ActivityIcon, ProgressBar } from '../components/ui';
-import { mockApprovals, mockCostByTenant } from '../../data';
+import { mockApprovals, mockCostByTenant } from '@/data';
 
 export default function Dashboard() {
   const activeAssistants = 34;
