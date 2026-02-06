@@ -151,3 +151,6 @@ export const mockActivityFeed = [
   { id: '4', type: 'success', time: '09:30', message: 'Assistant "Ops-B" activated by Admin' },
   { id: '5', type: 'warning', time: '09:28', message: 'Hallucination flag: Assistant "Research-F" (review pending)' },
 ];
+
+// Export mockCostByTenant for convenience (used by Dashboard and other pages)
+export const mockCostByTenant = mockCostData.byTenant;
