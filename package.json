@@ -1,0 +1,14 @@
+{
+  "name": "awgp-mvp",
+  "version": "0.1.0",
+  "description": "AWGP MVP - React + Vite + TypeScript + shadcn/ui",
+  "private": true,
+  "scripts": {
+    "dev": "cd apps/web && npm run dev",
+    "build": "cd apps/web && npm run build",
+    "preview": "cd apps/web && npm run preview",
+    "install-all": "cd apps/web && npm install"
+  },
+  "author": "Anastasia",
+  "license": "MIT"
+}
