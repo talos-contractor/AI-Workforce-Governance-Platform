@@ -1,4 +1,4 @@
-import { Card, StatusBadge } from '../ui';
+import { Card, StatusBadge } from '../components/ui';
 import { mockApprovals } from '../../data';
 
 export default function Approvals() {

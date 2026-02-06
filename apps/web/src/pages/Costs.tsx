@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, StatusBadge, ProgressBar } from '../ui';
+import { Card, StatusBadge, ProgressBar } from '../components/ui';
 import { mockCostByTenant } from '../../data';
 
 export default function Costs() {

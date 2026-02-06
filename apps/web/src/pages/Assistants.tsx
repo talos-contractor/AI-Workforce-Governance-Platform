@@ -1,4 +1,4 @@
-import { Card, StatusBadge, StatsCard, ActivityIcon } from '../ui';
+import { Card, StatusBadge, StatsCard, ActivityIcon } from '../components/ui';
 import { mockAssistants, mockWorkItems } from '../../data';
 
 export default function Assistants() {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card } from '../ui';
+import { Card } from '../components/ui';
 
 export default function Settings() {
   const [activeSection, setActiveSection] = useState('general');

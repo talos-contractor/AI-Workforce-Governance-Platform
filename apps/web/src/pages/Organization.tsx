@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card } from '../ui';
+import { Card } from '../components/ui';
 
 export default function Organization() {
   const [activeTab, setActiveTab] = useState('tenants');

@@ -1,4 +1,4 @@
-import { Card, StatusBadge, ActivityIcon, ProgressBar } from '../ui';
+import { Card, StatusBadge, ActivityIcon, ProgressBar } from '../components/ui';
 import { mockApprovals, mockCostByTenant } from '../../data';
 
 export default function Dashboard() {

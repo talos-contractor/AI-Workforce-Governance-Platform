@@ -1,21 +1,24 @@
-import { ReactNode } from 'react'
+import type { ReactNode } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 
 interface LayoutProps {
-  children: ReactNode
-  currentPage?: string
+  children: ReactNode;
 }
 
 const navItems = [
-  { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-  { id: 'assistants', label: 'Assistants', icon: '🤖' },
-  { id: 'approvals', label: 'Approvals', icon: '✅' },
-  { id: 'audit', label: 'Audit', icon: '📋' },
-  { id: 'costs', label: 'Costs', icon: '💰' },
-  { id: 'organization', label: 'Organization', icon: '🏢' },
-  { id: 'settings', label: 'Settings', icon: '⚙️' },
-]
+  { id: 'dashboard', label: 'Dashboard', icon: '📊', path: '/' },
+  { id: 'assistants', label: 'Assistants', icon: '🤖', path: '/assistants' },
+  { id: 'approvals', label: 'Approvals', icon: '✅', path: '/approvals' },
+  { id: 'audit', label: 'Audit', icon: '📋', path: '/audit' },
+  { id: 'costs', label: 'Costs', icon: '💰', path: '/costs' },
+  { id: 'organization', label: 'Organization', icon: '🏢', path: '/organization' },
+  { id: 'settings', label: 'Settings', icon: '⚙️', path: '/settings' },
+];
 
-export function Layout({ children, currentPage = 'dashboard' }: LayoutProps) {
+export function Layout({ children }: LayoutProps) {
+  const location = useLocation();
+  const currentPath = location.pathname;
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
@@ -25,18 +28,18 @@ export function Layout({ children, currentPage = 'dashboard' }: LayoutProps) {
         </div>
         <nav className="px-4 pb-4">
           {navItems.map((item) => (
-            <a
+            <Link
               key={item.id}
-              href={`#${item.id}`}
+              to={item.path}
               className={`flex items-center px-4 py-3 mb-1 rounded-lg text-sm font-medium transition-colors ${
-                currentPage === item.id
+                currentPath === item.path
                   ? 'bg-blue-50 text-blue-700'
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               }`}
             >
               <span className="mr-3 text-lg">{item.icon}</span>
               {item.label}
-            </a>
+            </Link>
           ))}
         </nav>
       </aside>
@@ -46,8 +49,8 @@ export function Layout({ children, currentPage = 'dashboard' }: LayoutProps) {
         {/* Header */}
         <header className="bg-white border-b border-gray-200">
           <div className="px-8 py-4 flex justify-between items-center">
-            <h1 className="text-xl font-semibold text-gray-900 capitalize">
-              {currentPage === 'dashboard' ? 'Overview' : currentPage.replace('-', ' ')}
+            <h1 className="text-xl font-semibold text-gray-900">
+              {navItems.find(item => item.path === currentPath)?.label || 'Dashboard'}
             </h1>
             <div className="flex items-center space-x-4">
               <button className="p-2 text-gray-500 hover:text-gray-700">🔔</button>
@@ -64,5 +67,5 @@ export function Layout({ children, currentPage = 'dashboard' }: LayoutProps) {
         </main>
       </div>
     </div>
-  )
+  );
 }

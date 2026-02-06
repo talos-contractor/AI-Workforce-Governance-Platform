@@ -1,4 +1,4 @@
-import { Card, StatusBadge } from '../ui';
+import { Card, StatusBadge } from '../components/ui';
 import { mockAuditLog } from '../../data';
 
 export default function Audit() {
