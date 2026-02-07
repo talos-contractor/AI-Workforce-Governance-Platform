@@ -1,3 +1,6 @@
+// Modal Component
+export { Modal } from './Modal'
+
 // Shared Card Component
 interface CardProps {
   title: string;
