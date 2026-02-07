@@ -1,0 +1,11 @@
+{
+  "name": "awgp-scripts",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "setup-db": "node apply-schema.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  }
+}
