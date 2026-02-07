@@ -11,6 +11,11 @@ interface CostTransaction {
   output_tokens: number
   created_at: string
   assistants: { name: string }
+  metadata?: {
+    project?: string
+    task?: string
+    description?: string
+  }
 }
 
 export default function Costs() {
@@ -109,6 +114,21 @@ export default function Costs() {
                   </div>
                   <StatusBadge status="success">{transaction.provider}</StatusBadge>
                 </div>
+                {transaction.metadata?.project && (
+                  <div className="text-sm text-gray-700 dark:text-gray-300 mb-1">
+                    <span className="font-medium">Project:</span> {transaction.metadata.project}
+                  </div>
+                )}
+                {transaction.metadata?.task && (
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                    <span className="font-medium">Task:</span> {transaction.metadata.task}
+                  </div>
+                )}
+                {transaction.metadata?.description && (
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    {transaction.metadata.description}
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600 dark:text-gray-400">
                     {transaction.input_tokens} / {transaction.output_tokens} tokens
