@@ -39,7 +39,7 @@ function CreateAssistantModal({ isOpen, onClose, onCreated }: CreateAssistantMod
     setError('')
 
     try {
-      const { data, error: apiError } = await createAssistant(formData)
+      const { data: _data, error: apiError } = await createAssistant(formData)
       
       if (apiError) {
         setError(apiError.message)

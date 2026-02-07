@@ -150,7 +150,7 @@ export async function createApproval(approval: any) {
   return { data, error }
 }
 
-export async function approveRequest(id: string, userId: string, notes?: string) {
+export async function approveRequest(id: string, userId: string, _notes?: string) {
   await withTenant()
   const { data, error } = await supabase
     .from('approvals')
@@ -190,7 +190,7 @@ export async function getCostTransactions() {
   return { data, error }
 }
 
-export async function getCostSummary(period: 'day' | 'week' | 'month' = 'month') {
+export async function getCostSummary(_period: 'day' | 'week' | 'month' = 'month') {
   await withTenant()
   
   // Get transactions grouped by day
