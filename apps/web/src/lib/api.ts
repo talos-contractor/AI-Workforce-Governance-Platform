@@ -67,6 +67,15 @@ export async function updateAssistant(id: string, updates: any) {
   return { data, error }
 }
 
+export async function deleteAssistant(id: string) {
+  await withTenant()
+  const { error } = await supabase
+    .from('assistants')
+    .delete()
+    .eq('id', id)
+  return { error }
+}
+
 // ===== WORK ITEMS =====
 export async function getWorkItems() {
   await withTenant()
