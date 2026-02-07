@@ -116,6 +116,20 @@ VALUES
     NULL
   );
 
+-- Create sample user profile first
+INSERT INTO user_profiles (id, tenant_id, first_name, last_name, role, is_active)
+VALUES (
+  '00000000-0000-0000-0000-000000000002',
+  '00000000-0000-0000-0000-000000000001',
+  'Admin',
+  'User',
+  'admin',
+  true
+)
+ON CONFLICT (id) DO UPDATE SET
+  first_name = EXCLUDED.first_name,
+  updated_at = NOW();
+
 -- Create sample approvals
 INSERT INTO approvals (tenant_id, work_item_id, title, description, risk_level, status, requested_by, expires_at, context)
 SELECT
@@ -125,7 +139,7 @@ SELECT
   'Vendor ABC proposes contract amendment for Q1 services. Terms: $50,000 service level, modified SLA.',
   4,
   'pending',
-  NULL,
+  '00000000-0000-0000-0000-000000000002',  -- Sample user ID
   NOW() + INTERVAL '24 hours',
   '{"vendor": "ABC Corp", "amount": 50000, "term": "Q1 2024"}'
 FROM work_items
