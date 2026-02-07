@@ -8,3 +8,4 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   </React.StrictMode>,
 )
 // Normal code comment
+// Normal code comment
