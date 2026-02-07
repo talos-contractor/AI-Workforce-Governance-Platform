@@ -7,3 +7,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <App />
   </React.StrictMode>,
 )
+// Normal code comment
+// Normal code comment
+// Normal code comment
