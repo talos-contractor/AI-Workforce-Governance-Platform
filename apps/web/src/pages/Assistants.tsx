@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Card, StatusBadge, StatsCard } from '../components/ui'
 import { getAssistants, createAssistant } from '../lib/api'
 
@@ -38,21 +38,25 @@ function CreateAssistantModal({ isOpen, onClose, onCreated }: CreateAssistantMod
     setLoading(true)
     setError('')
 
-    const { data, error: apiError } = await createAssistant(formData)
-    
-    if (apiError) {
-      setError(apiError.message)
-    } else {
-      onCreated()
-      onClose()
-      setFormData({
-        name: '',
-        slug: '',
-        description: '',
-        type: 'company_operations',
-        risk_tier: 2,
-        max_cost_per_day: 10
-      })
+    try {
+      const { data, error: apiError } = await createAssistant(formData)
+      
+      if (apiError) {
+        setError(apiError.message)
+      } else {
+        onCreated()
+        onClose()
+        setFormData({
+          name: '',
+          slug: '',
+          description: '',
+          type: 'company_operations',
+          risk_tier: 2,
+          max_cost_per_day: 10
+        })
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to create assistant')
     }
     
     setLoading(false)
@@ -177,21 +181,37 @@ export default function Assistants() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [debugInfo, setDebugInfo] = useState<string>('')
 
   useEffect(() => {
+    console.log('DEBUG: Assistants component mounted')
     loadAssistants()
   }, [])
 
   async function loadAssistants() {
+    console.log('DEBUG: loadAssistants called')
     setLoading(true)
     setError(null)
+    setDebugInfo('Loading...')
     
-    const { data, error: apiError } = await getAssistants()
-    
-    if (apiError) {
-      setError(apiError.message)
-    } else {
-      setAssistants(data || [])
+    try {
+      console.log('DEBUG: Calling getAssistants()')
+      const { data, error: apiError } = await getAssistants()
+      
+      console.log('DEBUG: getAssistants result:', { data, apiError })
+      setDebugInfo(`Data: ${JSON.stringify(data?.length || 0)} items, Error: ${apiError?.message || 'none'}`)
+      
+      if (apiError) {
+        console.error('DEBUG: API Error:', apiError)
+        setError(apiError.message)
+      } else {
+        console.log('DEBUG: Setting assistants:', data)
+        setAssistants(data || [])
+      }
+    } catch (err: any) {
+      console.error('DEBUG: Exception caught:', err)
+      setError(`Exception: ${err.message}`)
+      setDebugInfo(`Exception: ${err.message}`)
     }
     
     setLoading(false)
@@ -214,10 +234,19 @@ export default function Assistants() {
     return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
   }
 
+  console.log('DEBUG: Render - loading:', loading, 'error:', error, 'assistants:', assistants.length)
+
   if (loading) {
-    return <div className="flex items-center justify-center h-64">
-      <div className="text-gray-500 dark:text-gray-400">Loading assistants...</div>
-    </div>
+    return (
+      <div className="flex flex-col items-center justify-center h-64 space-y-4">
+        <div className="text-gray-500 dark:text-gray-400">Loading assistants...</div>
+        {debugInfo && (
+          <div className="text-xs text-gray-400 dark:text-gray-500 font-mono max-w-md">
+            {debugInfo}
+          </div>
+        )}
+      </div>
+    )
   }
 
   return (
@@ -234,12 +263,22 @@ export default function Assistants() {
           <p className="text-gray-500 dark:text-gray-400">Manage your AI workforce</p>
         </div>
         <button 
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            console.log('DEBUG: Create button clicked')
+            setIsModalOpen(true)
+          }}
           className="bg-blue-600 dark:bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
         >
           + Create Assistant
         </button>
       </div>
+
+      {/* Debug Info */}
+      {debugInfo && (
+        <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono text-gray-600 dark:text-gray-400">
+          Debug: {debugInfo}
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -272,10 +311,16 @@ export default function Assistants() {
       {/* Error Message */}
       {error && (
         <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
-          <p className="text-red-600 dark:text-red-400">Error: {error}</p>
+          <p className="text-red-600 dark:text-red-400 font-semibold">Error: {error}</p>
           <p className="text-sm text-red-500 dark:text-red-400 mt-1">
-            Make sure the database schema has been applied in Supabase.
+            Check browser console for details. Common issues:
           </p>
+          <ul className="text-sm text-red-500 dark:text-red-400 list-disc ml-5 mt-2">
+            <li>Supabase URL/key missing in .env</li>
+            <li>Database tables don't exist</li>
+            <li>RLS policy blocking access</li>
+            <li>CORS error (check Network tab)</li>
+          </ul>
         </div>
       )}
 
