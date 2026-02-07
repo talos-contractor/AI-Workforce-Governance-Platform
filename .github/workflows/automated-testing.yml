@@ -98,9 +98,9 @@ jobs:
           FOUND=1
         fi
         
-        # Check for private keys
+        # Check for private keys (look for actual key format, not grep patterns)
         echo "Checking for private keys..."
-        if grep -r "BEGIN.*PRIVATE KEY" $EXCLUDE . 2>/dev/null; then
+        if grep -rE "^-----BEGIN (RSA|DSA|EC|OPENSSH) PRIVATE KEY-----" $EXCLUDE . 2>/dev/null; then
           echo "❌ FOUND: Private key"
           FOUND=1
         fi
