@@ -7,56 +7,159 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  # Security scanning job - runs first
+  security-scan:
     runs-on: ubuntu-latest
-    
     steps:
     - uses: actions/checkout@v4
-    
+      with:
+        fetch-depth: 0  # Full git history for better scanning
+
+    - name: Secret Detection - Gitleaks
+      uses: gitleaks/gitleaks-action@v2
+      with:
+        fail-on-secrets-exposed: 'true'
+      continue-on-error: false
+
+    - name: Secret Detection - TruffleHog
+      uses: trufflesecurity/trufflehog@main
+      with:
+        path: ./
+        base: ''
+        head: HEAD
+
+    - name: Custom Secret Pattern Check
+      run: |
+        echo "🔍 Scanning for hardcoded secrets..."
+        
+        # Patterns to search for
+        PATTERNS="
+        A[A-Za-z0-9_]{14,}
+        sk-[a-zA-Z0-9]{48,}
+        eyJ[a-zA-Z0-9_-]*\.eyJ[a-zA-Z0-9_-]*
+        AKIA[0-9A-Z]{16}
+        ghp_[a-zA-Z0-9]{36}
+        glpat-[a-zA-Z0-9\-]{20,}
+        ^-----BEGIN (RSA|DSA|EC|OPENSSH) PRIVATE KEY-----
+        password\s*=\s*['\"][^'\"]+['\"]
+        api[_-]?key\s*[:=]\s*.+
+        secret\s*[:=]\s*.+
+        token\s*[:=]\s*.+
+        "
+        
+        # Excluded files/paths
+        EXCLUDE="
+        --exclude-dir=node_modules
+        --exclude-dir=.git
+        --exclude-dir=dist
+        --exclude-dir=build
+        --exclude=*.svg
+        --exclude=*.png
+        --exclude=*.jpg
+        --exclude=package-lock.json
+        --exclude=yarn.lock
+        "
+        
+        # Search for patterns (excluding test files and env examples)
+        FOUND=0
+        
+        # Check for API keys (sk- prefix)
+        echo "Checking for API keys (OpenAI, Anthropic, etc.)..."
+        if grep -rE "sk-[a-zA-Z0-9]{20,}" $EXCLUDE --include="*.ts" --include="*.tsx" --include="*.js" --include="*.env" . 2>/dev/null | grep -v "example" | grep -v ".env.example"; then
+          echo "❌ FOUND: Potential API key (sk- prefix)"
+          FOUND=1
+        fi
+        
+        # Check for Supabase keys (sb- prefix)
+        echo "Checking for Supabase keys..."
+        if grep -rE "sb-[a-zA-Z0-9-_]{20,}" $EXCLUDE --include="*.ts" --include="*.tsx" --include="*.js" --include="*.env" . 2>/dev/null | grep -v ".env.example"; then
+          echo "❌ FOUND: Potential Supabase key"
+          FOUND=1
+        fi
+        
+        # Check for JWT tokens
+        echo "Checking for JWT tokens..."
+        if grep -rE "eyJ[a-zA-Z0-9_-]*\.eyJ[a-zA-Z0-9_-]*" $EXCLUDE --include="*.ts" --include="*.tsx" --include="*.js" . 2>/dev/null | grep -v ".env.example"; then
+          echo "❌ FOUND: Potential JWT token"
+          FOUND=1
+        fi
+        
+        # Check for .env files
+        echo "Checking for committed .env files..."
+        if find . -name ".env" -type f 2>/dev/null | grep -v ".env.example" | grep -v "node_modules"; then
+          echo "❌ FOUND: Committed .env file (should be in .gitignore)"
+          FOUND=1
+        fi
+        
+        # Check for plaintext passwords
+        echo "Checking for plaintext passwords..."
+        if grep -ri "password.*=.*['\"][^'\"]{8,}['\"]" $EXCLUDE --include="*.ts" --include="*.tsx" --include="*.js" --include="*.json" . 2>/dev/null | grep -v "example" | grep -v "PASSWORD"; then
+          echo "❌ FOUND: Potential plaintext password"
+          FOUND=1
+        fi
+        
+        # Check for private keys
+        echo "Checking for private keys..."
+        if grep -r "BEGIN.*PRIVATE KEY" $EXCLUDE . 2>/dev/null; then
+          echo "❌ FOUND: Private key"
+          FOUND=1
+        fi
+        
+        if [ "$FOUND" = "1" ]; then
+          echo ""
+          echo "⛔ SECURITY VIOLATION DETECTED"
+          echo "Hardcoded secrets/API keys found in source code."
+          echo "Remove these before committing."
+          exit 1
+        else
+          echo ""
+          echo "✅ No hardcoded secrets detected"
+        fi
+
+  test:
+    needs: security-scan  # Only run if security scan passes
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-    
-    - name: Cache node_modules
-      uses: actions/cache@v3
-      with:
-        path: ~/.npm
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package.json') }}
-    
+
     - name: Install dependencies
       run: |
         cd apps/web
         npm install
-    
+
     - name: Install Playwright
       run: |
         cd apps/web
         npx playwright install --with-deps
-    
+
     - name: Create env file
       run: |
         cd apps/web
         echo "VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}" > .env
         echo "VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}" >> .env
-    
+
     - name: Build application
       run: |
         cd apps/web
         npm run build
-    
+
     - name: Start application
       run: |
         cd apps/web
         npm run preview -- --port 3000 --host 0.0.0.0 &
         npx wait-on http://localhost:3000 --timeout 30000
-    
+
     - name: Run Playwright tests
       run: |
         cd apps/web
         npx playwright test --reporter=list || true
       continue-on-error: true
-    
+
     - name: Upload test results
       if: always()
       uses: actions/upload-artifact@v4
@@ -72,15 +175,15 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-    
+
     - name: Build for production
       run: |
         cd apps/web
@@ -88,3 +191,8 @@ jobs:
         echo "VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}" > .env
         echo "VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}" >> .env
         npm run build
+
+    - name: Deploy to production
+      if: false  # Enable when deployment is ready
+      run: |
+        echo "Deployment step - configure with your server details"
