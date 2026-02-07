@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useDarkMode } from '../hooks/useDarkMode';
-import { Moon, Sun } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { Moon, Sun, LogOut, User } from 'lucide-react';
 
 interface LayoutProps {
   children: ReactNode;
@@ -21,6 +22,11 @@ export function Layout({ children }: LayoutProps) {
   const location = useLocation();
   const currentPath = location.pathname;
   const { isDark, toggle } = useDarkMode();
+  const { user, signOut } = useAuth();
+
+  async function handleLogout() {
+    await signOut();
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex transition-colors">
@@ -56,6 +62,17 @@ export function Layout({ children }: LayoutProps) {
               {navItems.find(item => item.path === currentPath)?.label || 'Dashboard'}
             </h1>
             <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                <User className="w-4 h-4" />
+                <span>{user?.email}</span>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                title="Sign Out"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
               <button
                 onClick={toggle}
                 className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
