@@ -10,10 +10,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
     
-    defaults:
-      run:
-        working-directory: apps/web
-    
     steps:
     - uses: actions/checkout@v4
     
@@ -23,50 +19,54 @@ jobs:
         node-version: '20'
     
     - name: Cache node_modules
-      uses: actions/cache@v4
+      uses: actions/cache@v3
       with:
-        path: apps/web/node_modules
-        key: ${{ runner.os }}-node-${{ hashFiles('apps/web/package.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package.json') }}
     
     - name: Install dependencies
-      run: npm install
+      run: |
+        cd apps/web
+        npm install
     
     - name: Install Playwright
-      run: npx playwright install --with-deps chromium
+      run: |
+        cd apps/web
+        npx playwright install --with-deps
     
     - name: Create env file
       run: |
+        cd apps/web
         echo "VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}" > .env
         echo "VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}" >> .env
     
     - name: Build application
-      run: npm run build
+      run: |
+        cd apps/web
+        npm run build
     
     - name: Start application
       run: |
-        npm run preview &
-        npx wait-on http://localhost:3000 --timeout 60000
+        cd apps/web
+        npm run preview -- --port 3000 --host 0.0.0.0 &
+        npx wait-on http://localhost:3000 --timeout 30000
     
     - name: Run Playwright tests
-      run: npx playwright test --reporter=html || true
+      run: |
+        cd apps/web
+        npx playwright test --reporter=list || true
+      continue-on-error: true
     
     - name: Upload test results
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: playwright-report
-        path: apps/web/playwright-report/
+        path: |
+          apps/web/playwright-report/
+          apps/web/test-results/
         retention-days: 30
-    
-    - name: Upload screenshots on failure
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: failure-screenshots
-        path: apps/web/test-results/
-        retention-days: 30
+        if-no-files-found: warn
 
   deploy:
     needs: test
@@ -82,14 +82,9 @@ jobs:
         node-version: '20'
     
     - name: Build for production
-      working-directory: apps/web
       run: |
+        cd apps/web
         npm install
         echo "VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}" > .env
         echo "VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}" >> .env
         npm run build
-    
-    - name: Deploy to server
-      if: false  # Enable when ready
-      run: |
-        echo "Deployment step - configure with your server details"
