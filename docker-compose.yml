@@ -1,0 +1,174 @@
+version: '3.8'
+
+# =============================================================================
+# AWGP Docker Compose - Production Ready
+# =============================================================================
+# This connects NEW AWGP services to your EXISTING infrastructure:
+#   - Postgres (already running)
+#   - Redis (already running)
+#   - Keycloak (already running)
+#   - Traefik (already running)
+#   - Qdrant (already running)
+#
+# You must create a .env file from .env.example before running
+# =============================================================================
+
+networks:
+  # Connect to your existing Traefik network
+  traefik-public:
+    external: true
+    name: ${TRAEFIK_NETWORK:-traefik-public}
+  
+  # Internal AWGP network
+  awgp-internal:
+    driver: bridge
+    name: awgp-internal
+
+# Optional: Docker Secrets for production
+# secrets:
+#   keycloak_client_secret:
+#     file: ./secrets/keycloak_client_secret.txt
+#   db_password:
+#     file: ./secrets/db_password.txt
+#   jwt_secret:
+#     file: ./secrets/jwt_secret.txt
+
+services:
+
+  # =====================================================================
+  # AWGP API (Fastify + Node.js)
+  # =====================================================================
+  awgp-api:
+    container_name: awgp-api
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+      args:
+        - NODE_ENV=${NODE_ENV:-production}
+    restart: unless-stopped
+    
+    networks:
+      - awgp-internal
+      - traefik-public
+    
+    environment:
+      # Node
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=${API_PORT:-4000}
+      
+      # Database
+      - DATABASE_URL=${DATABASE_URL}
+      
+      # Cache
+      - REDIS_URL=${REDIS_URL}
+      
+      # Auth
+      - KEYCLOAK_URL=${KEYCLOAK_URL}
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM}
+      - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID}
+      - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
+      - JWT_SECRET=${JWT_SECRET}
+      
+      # API Keys
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      
+      # CORS
+      - CORS_ORIGINS=${CORS_ORIGINS}
+      
+      # Cost Management
+      - COST_ALERT_ENABLED=${COST_ALERT_ENABLED:-true}
+      
+      # Logging
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    
+    # Optional: Use Docker secrets instead of env vars
+    # secrets:
+    #   - keycloak_client_secret
+    #   - db_password
+    #   - jwt_secret
+    
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O-", "http://localhost:${API_PORT:-4000}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${TRAEFIK_NETWORK:-traefik-public}"
+      - "traefik.http.routers.awgp-api.rule=Host(`api.${DOMAIN:-awgp.local}`)"
+      - "traefik.http.routers.awgp-api.entrypoints=https"
+      - "traefik.http.routers.awgp-api.tls=true"
+      - "traefik.http.routers.awgp-api.tls.certresolver=letsencrypt"
+      - "traefik.http.services.awgp-api.loadbalancer.server.port=${API_PORT:-4000}"
+      # Rate limiting
+      - "traefik.http.middlewares.awgp-api-ratelimit.ratelimit.average=100"
+      - "traefik.http.middlewares.awgp-api-ratelimit.ratelimit.burst=50"
+      - "traefik.http.routers.awgp-api.middlewares=awgp-api-ratelimit"
+
+  # =====================================================================
+  # AWGP Web (React + Vite)
+  # =====================================================================
+  awgp-web:
+    container_name: awgp-web
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+      args:
+        - NODE_ENV=${NODE_ENV:-production}
+        - VITE_API_URL=${API_URL}
+        - VITE_KEYCLOAK_URL=${KEYCLOAK_URL}
+    restart: unless-stopped
+    
+    networks:
+      - traefik-public
+    
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+    
+    depends_on:
+      - awgp-api
+    
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O-", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${TRAEFIK_NETWORK:-traefik-public}"
+      - "traefik.http.routers.awgp-web.rule=Host(`${DOMAIN:-awgp.local}`)"
+      - "traefik.http.routers.awgp-web.entrypoints=https"
+      - "traefik.http.routers.awgp-web.tls=true"
+      - "traefik.http.routers.awgp-web.tls.certresolver=letsencrypt"
+      - "traefik.http.services.awgp-web.loadbalancer.server.port=80"
+
+# =============================================================================
+# NOTES FOR CONNECTING EXISTING SERVICES
+# =============================================================================
+# Your existing services (PostgreSQL, Redis, Keycloak, Traefik, Qdrant)
+# should already be on networks that AWGP can connect to.
+#
+# Make sure:
+# 1. Your Postgres is accessible from the 'awgp-internal' network
+#      docker network connect awgp-internal your-postgres-container
+#
+# 2. Your Redis is accessible from the 'awgp-internal' network  
+#      docker network connect awgp-internal your-redis-container
+#
+# 3. Your Keycloak is accessible from the networks
+#
+# 4. Your Traefik network name matches TRAEFIK_NETWORK in .env
+#
+# Or use external:true and reference your existing networks directly:
+#
+#   postgres:
+#     external: true
+#     name: your-existing-postgres-network
+#
+# =============================================================================
