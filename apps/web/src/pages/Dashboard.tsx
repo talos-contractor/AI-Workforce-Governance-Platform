@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Card, ActivityIcon, ProgressBar } from '../components/ui'
 import { getCostSummary, subscribeToWorkItems } from '../lib/api'
-import type { SupabaseClient } from '@supabase/supabase-js'
 
 interface ActivityItem {
   id: string

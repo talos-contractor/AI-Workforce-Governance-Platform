@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Card, StatusBadge, ProgressBar } from '../components/ui';
-import { mockCostByTenant } from '@/data';
 
 export default function Costs() {
   const [period, setPeriod] = useState('month');
@@ -11,9 +10,9 @@ export default function Costs() {
   const percentUsed = (currentSpend / totalBudget) * 100;
 
   const providers = [
-    { name: 'OpenAI', budget: 5000, used: 1892.50, status: 'green' as const },
-    { name: 'Anthropic', budget: 3000, used: 823.45, status: 'green' as const },
-    { name: 'OpenRouter', budget: 2000, used: 367.30, status: 'green' as const },
+    { name: 'OpenAI', budget: 5000, used: 1892.50 },
+    { name: 'Anthropic', budget: 3000, used: 823.45 },
+    { name: 'OpenRouter', budget: 2000, used: 367.30 },
   ];
 
   return (
@@ -55,7 +54,7 @@ export default function Costs() {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 transition-colors">
           <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Projected (EOM)</p>
           <p className="text-3xl font-bold text-gray-900 dark:text-white">${projected.toLocaleString()}</p>
-          <StatusBadge status="green">On Track</StatusBadge>
+          <StatusBadge status="success">On Track</StatusBadge>
         </div>
       </div>
 
@@ -66,7 +65,7 @@ export default function Costs() {
             <div key={provider.name} className="border-b border-gray-200 dark:border-gray-700 last:border-0 pb-4 last:pb-0">
               <div className="flex justify-between items-center mb-2">
                 <span className="font-medium text-gray-900 dark:text-white">{provider.name}</span>
-                <StatusBadge status={provider.status}>Active</StatusBadge>
+                <StatusBadge status="success">Active</StatusBadge>
               </div>
               <ProgressBar value={provider.used} max={provider.budget} />
               <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mt-1">
