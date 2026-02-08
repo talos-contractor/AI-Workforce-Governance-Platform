@@ -11,11 +11,47 @@ async function withTenant() {
 // ===== TENANTS =====
 export async function getTenants() {
   await withTenant()
-  const { data, error } = await supabase.from('tenants').select('*')
+  const { data, error } = await supabase.from('tenants').select('*').order('created_at', { ascending: false })
   return { data, error }
 }
 
+export async function createTenant(tenant: any) {
+  const { data, error } = await supabase
+    .from('tenants')
+    .insert(tenant)
+    .select()
+    .single()
+  return { data, error }
+}
+
+export async function updateTenant(id: string, updates: any) {
+  const { data, error } = await supabase
+    .from('tenants')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+  return { data, error }
+}
+
+export async function deleteTenant(id: string) {
+  const { error } = await supabase
+    .from('tenants')
+    .delete()
+    .eq('id', id)
+  return { error }
+}
+
 // ===== USER PROFILES =====
+export async function getUserProfiles() {
+  await withTenant()
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .select('*, tenants(name)')
+    .order('created_at', { ascending: false })
+  return { data, error }
+}
+
 export async function getUserProfile(userId: string) {
   await withTenant()
   const { data, error } = await supabase
@@ -24,6 +60,36 @@ export async function getUserProfile(userId: string) {
     .eq('id', userId)
     .single()
   return { data, error }
+}
+
+export async function createUserProfile(profile: any) {
+  await withTenant()
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .insert({ ...profile, tenant_id: CURRENT_TENANT_ID })
+    .select()
+    .single()
+  return { data, error }
+}
+
+export async function updateUserProfile(id: string, updates: any) {
+  await withTenant()
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+  return { data, error }
+}
+
+export async function deleteUserProfile(id: string) {
+  await withTenant()
+  const { error } = await supabase
+    .from('user_profiles')
+    .delete()
+    .eq('id', id)
+  return { error }
 }
 
 // ===== ASSISTANTS =====
