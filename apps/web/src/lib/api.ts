@@ -340,3 +340,35 @@ export function subscribeToWorkItems(callback: (payload: any) => void) {
     )
     .subscribe()
 }
+
+export function subscribeToAssistants(callback: (payload: any) => void) {
+  return supabase
+    .channel('assistants-channel')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'assistants',
+        filter: `tenant_id=eq.${CURRENT_TENANT_ID}`
+      },
+      callback
+    )
+    .subscribe()
+}
+
+export function subscribeToCostTransactions(callback: (payload: any) => void) {
+  return supabase
+    .channel('cost-transactions-channel')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'cost_transactions',
+        filter: `tenant_id=eq.${CURRENT_TENANT_ID}`
+      },
+      callback
+    )
+    .subscribe()
+}

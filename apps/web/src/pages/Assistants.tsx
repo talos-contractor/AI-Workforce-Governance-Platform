@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Card, StatusBadge, StatsCard } from '../components/ui'
-import { getAssistants, createAssistant, updateAssistant, deleteAssistant } from '../lib/api'
+import { getAssistants, createAssistant, updateAssistant, deleteAssistant, subscribeToAssistants } from '../lib/api'
 
 interface Assistant {
   id: string
@@ -305,6 +305,16 @@ export default function Assistants() {
   useEffect(() => {
     console.log('DEBUG: Assistants component mounted')
     loadAssistants()
+    
+    // Subscribe to real-time assistant updates
+    const subscription = subscribeToAssistants((payload) => {
+      console.log('Assistant updated:', payload)
+      loadAssistants()
+    })
+    
+    return () => {
+      subscription.unsubscribe()
+    }
   }, [])
 
   async function loadAssistants() {

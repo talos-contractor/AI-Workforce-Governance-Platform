@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Card, ActivityIcon, ProgressBar } from '../components/ui'
-import { getCostSummary, subscribeToWorkItems } from '../lib/api'
+import { getCostSummary, subscribeToWorkItems, subscribeToApprovals, subscribeToAssistants, subscribeToCostTransactions } from '../lib/api'
 
 interface ActivityItem {
   id: string
@@ -23,14 +23,32 @@ export default function Dashboard() {
   useEffect(() => {
     loadDashboardData()
     
-    // Subscribe to real-time updates
-    const subscription = subscribeToWorkItems((payload) => {
+    // Subscribe to real-time updates for all tables
+    const workItemsSub = subscribeToWorkItems((payload) => {
       console.log('Work item updated:', payload)
-      loadDashboardData() // Refresh on changes
+      loadDashboardData()
+    })
+    
+    const approvalsSub = subscribeToApprovals((payload) => {
+      console.log('Approval updated:', payload)
+      loadDashboardData()
+    })
+    
+    const assistantsSub = subscribeToAssistants((payload) => {
+      console.log('Assistant updated:', payload)
+      loadDashboardData()
+    })
+    
+    const costTransactionsSub = subscribeToCostTransactions((payload) => {
+      console.log('Cost transaction updated:', payload)
+      loadDashboardData()
     })
     
     return () => {
-      subscription.unsubscribe()
+      workItemsSub.unsubscribe()
+      approvalsSub.unsubscribe()
+      assistantsSub.unsubscribe()
+      costTransactionsSub.unsubscribe()
     }
   }, [])
 
