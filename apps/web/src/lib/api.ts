@@ -192,7 +192,7 @@ export async function getApprovals(status?: string) {
   await withTenant()
   let query = supabase
     .from('approvals')
-    .select('*, work_items(title), requested_by:requested_by(first_name, last_name)')
+    .select('*, work_items(title)')
     .order('created_at', { ascending: false })
   
   if (status) query = query.eq('status', status)
@@ -205,7 +205,7 @@ export async function getApprovalById(id: string) {
   await withTenant()
   const { data, error } = await supabase
     .from('approvals')
-    .select('*, work_items(*), requested_by:requested_by(first_name, last_name)')
+    .select('*, work_items(*)')
     .eq('id', id)
     .single()
   return { data, error }

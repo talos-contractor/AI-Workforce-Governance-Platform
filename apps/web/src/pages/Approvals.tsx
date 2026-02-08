@@ -8,7 +8,7 @@ interface Approval {
   description: string
   risk_level: number
   status: string
-  requested_by: { first_name: string; last_name: string }
+  requested_by: string
   work_items: { title: string }
   expires_at: string
   context: any
@@ -154,7 +154,7 @@ function ApprovalCard({ approval, onUpdate }: { approval: Approval; onUpdate: ()
       <div className="flex justify-between items-start">
         <div className="flex-1">
           <div className="mt-2 flex space-x-4 text-sm text-gray-500 dark:text-gray-400">
-            <span>From: {approval.requested_by?.first_name} {approval.requested_by?.last_name}</span>
+            <span>From: {approval.requested_by?.slice(0, 8)}...</span>
             <StatusBadge status={approval.risk_level >= 4 ? 'warning' : 'success'}>L{approval.risk_level}</StatusBadge>
             <span>Work: {approval.work_items?.title}</span>
           </div>
