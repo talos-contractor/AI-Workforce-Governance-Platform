@@ -11,6 +11,10 @@ interface Assistant {
   risk_tier: number
   max_cost_per_day: number
   created_at: string
+  soul_md?: string
+  user_md?: string
+  tools_md?: string
+  server_host?: string
 }
 
 interface CreateAssistantModalProps {
@@ -33,7 +37,11 @@ function CreateAssistantModal({ isOpen, onClose, onCreated }: CreateAssistantMod
     description: '',
     type: 'company_operations',
     risk_tier: 2,
-    max_cost_per_day: 10
+    max_cost_per_day: 10,
+    soul_md: '',
+    user_md: '',
+    tools_md: '',
+    server_host: ''
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -59,7 +67,11 @@ function CreateAssistantModal({ isOpen, onClose, onCreated }: CreateAssistantMod
           description: '',
           type: 'company_operations',
           risk_tier: 2,
-          max_cost_per_day: 10
+          max_cost_per_day: 10,
+          soul_md: '',
+          user_md: '',
+          tools_md: '',
+          server_host: ''
         })
       }
     } catch (err: any) {
@@ -160,6 +172,66 @@ function CreateAssistantModal({ isOpen, onClose, onCreated }: CreateAssistantMod
               />
             </div>
 
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+              <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Configuration Files</h4>
+
+              <div className="mb-3">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Server Host
+                </label>
+                <input
+                  type="text"
+                  value={formData.server_host}
+                  onChange={(e) => setFormData({ ...formData, server_host: e.target.value })}
+                  placeholder="e.g., server-01, aws-east-1"
+                  className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Server where this assistant runs</p>
+              </div>
+
+              <div className="mb-3">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  SOUL.md Content
+                </label>
+                <textarea
+                  value={formData.soul_md}
+                  onChange={(e) => setFormData({ ...formData, soul_md: e.target.value })}
+                  placeholder="# Assistant Personality..."
+                  rows={4}
+                  className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2 font-mono text-sm"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Assistant personality and behavior</p>
+              </div>
+
+              <div className="mb-3">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  USER.md Content
+                </label>
+                <textarea
+                  value={formData.user_md}
+                  onChange={(e) => setFormData({ ...formData, user_md: e.target.value })}
+                  placeholder="# User Preferences..."
+                  rows={4}
+                  className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2 font-mono text-sm"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">User context and preferences</p>
+              </div>
+
+              <div className="mb-3">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  TOOLS.md Content
+                </label>
+                <textarea
+                  value={formData.tools_md}
+                  onChange={(e) => setFormData({ ...formData, tools_md: e.target.value })}
+                  placeholder="# Tool Definitions..."
+                  rows={4}
+                  className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2 font-mono text-sm"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Available tools and usage instructions</p>
+              </div>
+            </div>
+
             <div className="flex space-x-3 pt-4">
               <button
                 type="button"
@@ -190,7 +262,11 @@ function EditAssistantModal({ isOpen, onClose, onUpdated, assistant }: EditAssis
     type: 'company_operations',
     risk_tier: 2,
     max_cost_per_day: 10,
-    status: 'active'
+    status: 'active',
+    soul_md: '',
+    user_md: '',
+    tools_md: '',
+    server_host: ''
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -203,7 +279,11 @@ function EditAssistantModal({ isOpen, onClose, onUpdated, assistant }: EditAssis
         type: assistant.type,
         risk_tier: assistant.risk_tier,
         max_cost_per_day: assistant.max_cost_per_day,
-        status: assistant.status
+        status: assistant.status,
+        soul_md: assistant.soul_md || '',
+        user_md: assistant.user_md || '',
+        tools_md: assistant.tools_md || '',
+        server_host: assistant.server_host || ''
       })
     }
   }, [assistant])
@@ -282,6 +362,35 @@ function EditAssistantModal({ isOpen, onClose, onUpdated, assistant }: EditAssis
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Max Cost Per Day ($)</label>
               <input type="number" step="0.01" min="0" value={formData.max_cost_per_day} onChange={(e) => setFormData({ ...formData, max_cost_per_day: parseFloat(e.target.value) })} className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2" />
             </div>
+
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+              <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Configuration Files</h4>
+
+              <div className="mb-3">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Server Host</label>
+                <input type="text" value={formData.server_host} onChange={(e) => setFormData({ ...formData, server_host: e.target.value })} placeholder="e.g., server-01, aws-east-1" className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2" />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Server where this assistant runs</p>
+              </div>
+
+              <div className="mb-3">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">SOUL.md Content</label>
+                <textarea value={formData.soul_md} onChange={(e) => setFormData({ ...formData, soul_md: e.target.value })} placeholder="# Assistant Personality..." rows={4} className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2 font-mono text-sm" />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Assistant personality and behavior</p>
+              </div>
+
+              <div className="mb-3">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">USER.md Content</label>
+                <textarea value={formData.user_md} onChange={(e) => setFormData({ ...formData, user_md: e.target.value })} placeholder="# User Preferences..." rows={4} className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2 font-mono text-sm" />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">User context and preferences</p>
+              </div>
+
+              <div className="mb-3">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">TOOLS.md Content</label>
+                <textarea value={formData.tools_md} onChange={(e) => setFormData({ ...formData, tools_md: e.target.value })} placeholder="# Tool Definitions..." rows={4} className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2 font-mono text-sm" />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Available tools and usage instructions</p>
+              </div>
+            </div>
+
             <div className="flex space-x-3 pt-4">
               <button type="button" onClick={onClose} className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-50 dark:hover:bg-gray-700">Cancel</button>
               <button type="submit" disabled={loading} className="flex-1 px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50">{loading ? 'Saving...' : 'Save Changes'}</button>

@@ -116,7 +116,14 @@ export async function createAssistant(assistant: any) {
   await withTenant()
   const { data, error } = await supabase
     .from('assistants')
-    .insert({ ...assistant, tenant_id: CURRENT_TENANT_ID })
+    .insert({
+      ...assistant,
+      tenant_id: CURRENT_TENANT_ID,
+      soul_md: assistant.soul_md,
+      user_md: assistant.user_md,
+      tools_md: assistant.tools_md,
+      server_host: assistant.server_host
+    })
     .select()
     .single()
   return { data, error }
@@ -124,12 +131,29 @@ export async function createAssistant(assistant: any) {
 
 export async function updateAssistant(id: string, updates: any) {
   await withTenant()
+
+  // Build update payload with optional file storage fields
+  const payload: any = {
+    name: updates.name,
+    slug: updates.slug,
+    type: updates.type,
+    risk_tier: updates.risk_tier,
+    max_cost_per_day: updates.max_cost_per_day,
+    status: updates.status
+  }
+
+  // Only include optional file storage fields if provided
+  if (updates.soul_md !== undefined) payload.soul_md = updates.soul_md
+  if (updates.user_md !== undefined) payload.user_md = updates.user_md
+  if (updates.tools_md !== undefined) payload.tools_md = updates.tools_md
+  if (updates.server_host !== undefined) payload.server_host = updates.server_host
+
   const { data, error } = await supabase
     .from('assistants')
-    .update(updates)
+    .update(payload)
     .eq('id', id)
     .select()
-  
+
   if (error) return { data: null, error }
   return { data: data?.[0] || null, error: null }
 }
