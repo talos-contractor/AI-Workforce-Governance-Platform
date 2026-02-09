@@ -129,8 +129,9 @@ export async function updateAssistant(id: string, updates: any) {
     .update(updates)
     .eq('id', id)
     .select()
-    .single()
-  return { data, error }
+  
+  if (error) return { data: null, error }
+  return { data: data?.[0] || null, error: null }
 }
 
 export async function deleteAssistant(id: string) {

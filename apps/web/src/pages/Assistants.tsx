@@ -381,6 +381,16 @@ export default function Assistants() {
     return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
   }
 
+  const formatStatus = (status: string) => {
+    const displayMap: Record<string, string> = {
+      active: 'Active',
+      inactive: 'Inactive',
+      error: 'Error',
+      awaiting_approval: 'Awaiting Approval'
+    }
+    return displayMap[status] || status
+  }
+
   console.log('DEBUG: Render - loading:', loading, 'error:', error, 'assistants:', assistants.length)
 
   if (loading) {
@@ -511,7 +521,7 @@ export default function Assistants() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <StatusBadge status={getStatusColor(assistant.status)}>
-                        {assistant.status}
+                        {formatStatus(assistant.status)}
                       </StatusBadge>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-200">
